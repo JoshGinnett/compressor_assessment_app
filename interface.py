@@ -1,7 +1,6 @@
 import tkinter as tk
 import threading
 import os
-import time
 from datetime import datetime
 from tkinter import messagebox, ttk, filedialog
 from tkcalendar import DateEntry
