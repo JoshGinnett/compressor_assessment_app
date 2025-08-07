@@ -1,6 +1,3 @@
-import os
-from compressor import Compressor
-
 class Simulation:
     """
     Stores general simulation information, such as kWh rate, main compressor
