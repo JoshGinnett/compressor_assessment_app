@@ -248,7 +248,7 @@ class Interface(tk.Tk):
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill='both', expand=True)
 
-        self.title("Compressor System Assessment")
+        self.title("Compressment")
         self.geometry("1920x1080")
         self.configure(bg="#000e2f")    # Background Set
         self.iconphoto(False, tk.PhotoImage(file='logo.png'))
