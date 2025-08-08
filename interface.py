@@ -1,9 +1,9 @@
 import tkinter as tk
 import threading
 import os
+import calendar
 from datetime import datetime
 from tkinter import messagebox, ttk, filedialog
-from tkcalendar import DateEntry
 from simulation import Simulation
 from compressor import Compressor
 from exporter import Exporter
@@ -241,6 +241,160 @@ class ShutdownSchedulerWidget(ttk.Frame):
 
         return schedule
 
+class CalendarPopup(tk.Toplevel):
+    def __init__(self, parent, entry, date_format='%m/%d/%Y'):
+        super().__init__(parent)
+        self.parent = parent
+        self.entry = entry
+        self.date_format = date_format
+        self.configure(bg="#ffffff")  # border color
+
+        # Main content frame inside the popup
+        self.container = ttk.Frame(self, style="Calendar.TFrame", padding=2, borderwidth=2, relief="solid")  # 2px padding so border shows
+        self.container.pack(fill="both", expand=True)
+
+        self.withdraw()
+        self.transient(parent)
+
+        self.year = datetime.now().year
+        self.month = datetime.now().month
+
+        self.build_widgets()
+        self.update_calendar()
+
+        self.position_popup()  # set initial position
+        self.lift()
+
+        # Close when clicking outside
+        self._click_outside_binding = self.parent.bind("<Button-1>", self.on_click_outside, add="+")
+        # Reposition when parent moves/resizes
+        self._configure_binding = self.parent.bind("<Configure>", self.on_parent_configure, add="+")
+
+        self.deiconify()
+        
+
+    def position_popup(self):
+        """Place the popup just under the entry widget."""
+        x = self.entry.winfo_rootx()
+        y = self.entry.winfo_rooty() + self.entry.winfo_height()
+        self.geometry(f'+{x}+{y}')
+
+    def on_parent_configure(self, event):
+        """Reposition the popup when parent moves/resizes."""
+        self.position_popup()
+
+    def on_click_outside(self, event):
+        widget = event.widget
+        if widget is self or self.is_ancestor(widget):
+            return
+        self.destroy()
+
+    def is_ancestor(self, widget):
+        while widget:
+            if widget == self:
+                return True
+            widget = widget.master
+        return False
+
+    def destroy(self):
+        if hasattr(self, '_click_outside_binding'):
+            self.parent.unbind("<Button-1>", self._click_outside_binding)
+        if hasattr(self, '_configure_binding'):
+            self.parent.unbind("<Configure>", self._configure_binding)
+        super().destroy()
+
+    def build_widgets(self):
+        header = ttk.Frame(self.container, style="Calendar.TFrame")
+        header.pack()
+
+        prev_btn = ttk.Button(header, text="<", width=2, command=self.prev_month, style="CalendarDay.TButton")
+        prev_btn.grid(row=0, column=0)
+
+        self.month_year_label = ttk.Label(header, width=15, anchor="center", style="CalendarHeader.TLabel")
+        self.month_year_label.grid(row=0, column=1)
+
+        next_btn = ttk.Button(header, text=">", width=2, command=self.next_month, style="CalendarDay.TButton")
+        next_btn.grid(row=0, column=2)
+
+        self.days_frame = ttk.Frame(self.container, style="Calendar.TFrame")
+        self.days_frame.pack()
+
+    def update_calendar(self):
+        self.month_year_label.config(text=f"{calendar.month_name[self.month]} {self.year}")
+
+        for widget in self.days_frame.winfo_children():
+            widget.destroy()
+
+        days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+        for i, day in enumerate(days):
+            ttk.Label(self.days_frame, text=day, style="CalendarHeader.TLabel").grid(row=0, column=i)
+
+        cal = calendar.monthcalendar(self.year, self.month)
+        for r, week in enumerate(cal, 1):
+            for c, day in enumerate(week):
+                if day == 0:
+                    ttk.Label(self.days_frame, text="", style="CalendarHeader.TLabel").grid(row=r, column=c)
+                else:
+                    b = ttk.Button(self.days_frame, text=str(day), width=3,
+                                   command=lambda d=day: self.on_date_selected(d), style="CalendarDay.TButton")
+                    b.grid(row=r, column=c)
+
+    def on_date_selected(self, day):
+        date = datetime(self.year, self.month, day)
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, date.strftime(self.date_format))
+        self.destroy()
+        self.entry.focus_set()
+
+    def prev_month(self):
+        self.month -= 1
+        if self.month < 1:
+            self.month = 12
+            self.year -= 1
+        self.update_calendar()
+
+    def next_month(self):
+        self.month += 1
+        if self.month > 12:
+            self.month = 1
+            self.year += 1
+        self.update_calendar()
+
+class DateEntry(ttk.Frame):
+    def __init__(self, parent, date_format='%m/%d/%Y', **kwargs):
+        super().__init__(parent)
+
+        self.date_format = date_format
+
+        self.entry = ttk.Entry(self, **kwargs, width=10)
+        self.entry.grid(row=0, column=0, sticky="ew")
+
+        self.button = ttk.Button(self, text="📅", width=3, command=self.open_calendar)
+        self.button.grid(row=0, column=1, sticky="ew", padx=(2,0))
+
+        self.columnconfigure(0, weight=1)
+        self.calendar_popup = None
+
+    def open_calendar(self):
+        print("Calendar button clicked")
+        if self.calendar_popup and self.calendar_popup.winfo_exists():
+            print("Calendar already open")
+            return
+        try:
+            self.calendar_popup = CalendarPopup(self.winfo_toplevel(), self.entry, self.date_format)
+            print("Calendar popup created")
+        except Exception as e:
+            print("Error creating calendar popup:", e)
+
+    def get(self):
+        return self.entry.get()
+
+    def insert(self, index, string):
+        self.entry.insert(index, string)
+
+    def delete(self, first, last=None):
+        self.entry.delete(first, last)
+
 class Interface(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -273,6 +427,11 @@ class Interface(tk.Tk):
         style.configure("Comp.TButton", background="#000e2f", foreground="#ffffff", font=("Segoe UI", 11))
         style.configure("CompSelected.TButton", background="#ffffff", foreground="#000e2f", font=("Segoe UI", 11))
 
+        # Calendar popup styles
+        style.configure("Calendar.TFrame", background="#000e2f")
+        style.configure("CalendarHeader.TLabel", background="#000e2f", foreground="#ffffff", font=("Segoe UI", 12, "bold"))
+        style.configure("CalendarDay.TButton", background="#000e2f", foreground="#ffffff", font=("Segoe UI", 11))
+        style.map("CalendarDay.TButton", background=[("active", "#ffffff"), ("pressed", "#ffffff")], foreground=[("active", "#000e2f"), ("pressed", "#000e2f")])
 
         # -- compressor frame style
         style.configure("Container.TFrame", background="#000e2f")
@@ -328,18 +487,13 @@ class Interface(tk.Tk):
 
         # Deployed Date
         ttk.Label(form_frame, text="Sensor Deployed Date:").grid(row=2, column=0, padx=(0, 5), pady=5, sticky="e")
-        self.deployed_date_entry = DateEntry(form_frame, width=12, background="#AAAAAA",
-                                            foreground="#000000", borderwidth=2, date_pattern='mm/dd/yyyy',
-                                            showweeknumbers=False, font=('Segoe UI', 11))
+        self.deployed_date_entry = DateEntry(form_frame, font=('Segoe UI', 11))
         self.deployed_date_entry.grid(row=2, column=1, pady=5, sticky="w")
 
         # Collected Date
         ttk.Label(form_frame, text="Sensor Collected Date:").grid(row=3, column=0, padx=(0, 5), pady=5, sticky="e")
-        self.collected_date_entry = DateEntry(form_frame, width=12, background="#AAAAAA",
-                                            foreground="#000000", borderwidth=2, date_pattern='mm/dd/yyyy',
-                                            showweeknumbers=False, font=('Segoe UI', 11))
+        self.collected_date_entry = DateEntry(form_frame, font=('Segoe UI', 11))
         self.collected_date_entry.grid(row=3, column=1, pady=5, sticky="w")
-        self.collected_date_entry.configure(background="#AAAAAA", foreground="#000000")
 
         # --- Container Frame for Compressor Data
         self.comp_container = ttk.Frame(self.scrollable_setup, style="Container.TFrame")
