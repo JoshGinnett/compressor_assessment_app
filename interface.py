@@ -585,8 +585,8 @@ class Interface(tk.Tk):
         analyzer = Analyzer(self.sim)
         schedule = self.scheduler.get_schedule()                    # shutdown schedule 
         result = analyzer.compute_shutdown_savings(schedule)        # stores shutdown savings data
-        compressor_savings = result["compressor_savings"]           # shutdown savings data by compressor
-        savings_by_day = result["savings_by_day"]                   # shutdown savings by day
+        compressor_savings = result['compressor_savings']           # shutdown savings data by compressor
+        savings_by_day = result['savings_by_day']                   # shutdown savings by day
         active_days = [day for day in schedule if schedule[day]]    # active days in shutdown schedule
 
         # ----------- WEEKLY TABLE ---------------#
@@ -626,7 +626,7 @@ class Interface(tk.Tk):
             self.weekly_table.insert("", "end", values=row_values)
 
         # Insert total row
-        total_row_values = ["Total"] + [f"{savings_by_day.get(day):,.2f}" for day in active_days] + [f"{result["total_week_kwh"]:,.2f}"] + [f"${result["total_week_dollars"]:,.2f}"]
+        total_row_values = ["Total"] + [f"{savings_by_day.get(day):,.2f}" for day in active_days] + [f"{result['total_week_kwh']:,.2f}"] + [f"${result['total_week_dollars']:,.2f}"]
         self.weekly_table.insert("", "end", values=total_row_values, tags=("total_row",))
         self.weekly_table.tag_configure("total_row", background="#747474", font=("Segoe UI", 10, "bold"))
 
@@ -648,8 +648,8 @@ class Interface(tk.Tk):
         # insert and format total row
         self.annual_table.insert("", "end", values=(
             "Total",
-            f"{result["total_kwh"]:,.2f}",
-            f"${result["total_dollars"]:,.2f}"
+            f"{result['total_kwh']:,.2f}",
+            f"${result['total_dollars']:,.2f}"
         ), tags=("total_row",))
         self.annual_table.tag_configure("total_row", background="#747474", font=("Segoe UI", 10, "bold"))
 
