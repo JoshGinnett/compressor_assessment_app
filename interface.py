@@ -152,16 +152,11 @@ class ShutdownSchedulerWidget(ttk.Frame):
 
         # Draw day labels with some padding
         for col, day in enumerate(self.days):
-            btn = tk.Button(
+            btn = ttk.Button(
                 self.canvas,
                 text=day,
                 command=lambda d=day: self._set_column(d),
-                bg="#000e2f",
-                fg="#ffffff",
-                font=("Segoe UI", 10, "bold"),
-                relief="flat",
-                cursor="hand2",
-                takefocus=0
+                style="Day.TButton"
             )
             x = self.time_col_width + col * self.cell_size_x + self.cell_size_x / 2
             self.canvas.create_window(x, 5, window=btn, anchor="n")
@@ -420,6 +415,7 @@ class Interface(tk.Tk):
 
         # Colors for labels, buttons, entries
         # -- main styling
+        style.configure("Day.TButton", font=("Segoe UI", 10, "bold"), foreground="#ffffff", background="#000e2f", borderwidth=0)
         style.configure("TLabel", background="#000e2f", foreground="#ffffff", font=("Segoe UI", 12))
         style.configure("TButton", background="#000e2f", foreground="#ffffff", font=("Segoe UI", 12, "bold"))
         style.map("TButton", foreground=[('pressed', '#000e2f'), ('active', '#000e2f')], background=[('pressed', '#ffffff'), ('active', '#ffffff')])
