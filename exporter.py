@@ -23,9 +23,6 @@ class Exporter:
                 pyautogui.typewrite(str(value))
                 pyautogui.press('tab')
 
-            
-
-
     def print_all_results(self):
         """
         Prints all compressor results to out.txt
