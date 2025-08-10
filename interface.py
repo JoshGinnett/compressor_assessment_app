@@ -680,6 +680,8 @@ class Interface(tk.Tk):
         # Horizontal container inside scrollable frame
         row_frame = ttk.Frame(scrollable_frame, style="Container.TFrame")
         row_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        row_frame.columnconfigure(0, weight=0)  # left fixed
+        row_frame.columnconfigure(1, weight=1)  # right expands
 
         # Scheduler widget on LEFT inside row_frame
         self.scheduler = ShutdownSchedulerWidget(
@@ -687,11 +689,11 @@ class Interface(tk.Tk):
             interval_minutes=self.sim.get_interval(),
             on_change=self.calculate_shutdown_savings
         )
-        self.scheduler.pack(side="left", fill="y")  # fill vertically, natural width horizontally
+        self.scheduler.grid(row=0, column=0, sticky="ns")
     
         # Tables container on RIGHT inside row_frame
         table_frame = ttk.Frame(row_frame, style="Container.TFrame")
-        table_frame.pack(side="left", fill="both", expand=True, padx=10)
+        table_frame.grid(row=0, column=1, sticky="nsew", padx=10)
 
         # Now create your weekly and annual tables inside table_frame
         table_style = ttk.Style()
@@ -750,10 +752,8 @@ class Interface(tk.Tk):
             self.weekly_table.heading(col, text=col)
             if col == "Compressor":
                 width = 120
-            elif col == "Total kWh":
+            elif (col == "Total kWh") or (col == "Total Savings ($)"):
                 width = 80
-            elif col == "Total Cost Savings ($)":
-                width = 120
             else:
                 width = 40
             self.weekly_table.column(col, anchor="center", width=width)
