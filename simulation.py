@@ -61,7 +61,6 @@ class Simulation:
         self._compressors = compressors
         print(f"Set compressor list")
 
-
     def compute_power_buckets(self):
         """
         Computes the power buckets / fills data dictionaries for each compressor.

@@ -5,6 +5,7 @@ from pandas.errors import DtypeWarning
 
 # CONSTANTS
 SQRT_3 = 1.732050808
+PF = 0.90 # an estimated power factor for air compressors
 
 class Compressor:
     """
@@ -112,7 +113,7 @@ class Compressor:
         grouped = self.df.groupby(['WeekdayName', 'Interval'])[self.current_column].mean().reset_index()
 
         # convert average current to power in kW
-        grouped['Power_kW'] = (grouped[self.current_column] * self.voltage * SQRT_3 / 1000).round(2)
+        grouped['Power_kW'] = (grouped[self.current_column] * self.voltage * SQRT_3 * PF / 1000).round(2)
 
         # convert grouped data to nested dictionary (day -> interval -> power_kw)
         nested_dict = (
