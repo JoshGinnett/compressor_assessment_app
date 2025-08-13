@@ -658,6 +658,8 @@ class Interface(tk.Tk):
         # build consumption by day plot and add
         kwh_by_day_fig = analyzer.plot_consumption_by_day()
         self.add_graph_to_tab(kwh_by_day_fig, scrollable_frame)
+        kW_by_interval_fig = analyzer.plot_power_consumption_by_interval()
+        self.add_graph_to_tab(kW_by_interval_fig, scrollable_frame)
 
     def add_graph_to_tab(self, fig, container):
         frame = ttk.Frame(container)

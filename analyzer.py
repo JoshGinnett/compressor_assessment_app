@@ -112,3 +112,52 @@ class Analyzer:
     def _time_str_to_minutes(self, time_str):
         h, m = map(int, time_str.split(":"))
         return h * 60 + m
+    
+    def plot_power_consumption_by_interval(self) -> Figure:
+        """
+        Creates a line plot of compressor power consumption for Monday intervals.
+        Vertical axis = power in kW, Horizontal axis = time interval (HH:MM).
+        Each line represents a different compressor.
+        """
+        # Create the figure and axis
+        fig = Figure(figsize=(10, 6), dpi=100)
+        ax = fig.add_subplot(1, 1, 1)
+
+        # Loop over compressors and plot their Monday data
+        for compressor in self.sim.get_compressors():
+            data = compressor.get_data()
+            monday_data = data.get("Monday", {})
+
+            if not monday_data:
+                continue  # Skip if no Monday data
+
+            # Extract intervals and values in given order
+            intervals = list(monday_data.keys())
+            values = list(monday_data.values())
+
+            # Plot line using compressor's name for the label
+            ax.plot(intervals, values, marker='o', label=compressor.get_name())
+
+        # Set titles and labels
+        ax.set_title("Power Consumption Over Time - Average Monday", fontsize=18)
+        ax.set_xlabel("Time Interval", fontsize=16)
+        ax.set_ylabel("Power (kW)", fontsize=16)
+
+        # Remove horizontal padding (set x-axis limits tightly)
+        ax.set_xlim(intervals[0], intervals[-1])
+
+        # Rotate x-axis labels and right center for readability
+        ax.tick_params(axis='x', rotation=45)
+        for label in ax.get_xticklabels():
+            label.set_horizontalalignment('right')
+
+        # add grid
+        ax.grid(True, linestyle='--', alpha=0.6)
+
+        # Show legend
+        ax.legend()
+
+        # Optimize layout
+        fig.tight_layout()
+
+        return fig
