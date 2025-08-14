@@ -13,6 +13,9 @@ time.sleep(5)
 for day in weekdays:
     pyautogui.typewrite(str(day))
     pyautogui.press('tab')
-    pyautogui.typewrite("52.14285715")
+    if day == 'Sunday':
+        pyautogui.typewrite("52.14285716")
+    else:
+        pyautogui.typewrite("52.14285714")
     pyautogui.press('tab')
     pyautogui.press('tab')
